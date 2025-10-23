@@ -1,0 +1,3 @@
+#!/bin/bash
+python main_experiments.py --task_type classification --models deberta-large --epochs 1 --batch 1024 --kfold 10 --optim adam --nhid 0 --initial_layer 24 --final_layer 24 --poolings simple_all  --agg_layers SUMAGGLAYERS &&
+python main_experiments.py --task_type classification --models deberta-large --epochs 1 --batch 1024 --kfold 10 --optim adam --nhid 0 --initial_layer 24 --final_layer 24 --poolings simple_all  --agg_layers AVGAGGLAYERS
