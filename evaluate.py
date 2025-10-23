@@ -72,7 +72,7 @@ def get_type_pooling(pooling_str):
     else:
         return "not categorized"
     
-def tables_classification(experiment_path, cl_paths, columns_tasks_cl, ordem_colunas_cl):
+def tables_process(experiment_path, cl_paths, columns_tasks_cl, ordem_colunas_cl, type_task_process):
     for clp in cl_paths:
         path_cl = os.path.join(experiment_path, clp)
         if [f for f in os.listdir(path_cl) if f.endswith('_intermediate.csv')]:
@@ -86,9 +86,22 @@ def tables_classification(experiment_path, cl_paths, columns_tasks_cl, ordem_col
         devacc_data = {'model': data['model'], 'pooling': data['pooling'], 'epochs': data['epochs'], 'out_vec_size': data['out_vec_size'], 'qtd_layers': data['qtd_layers'], 'nhid': data['nhid'], 'best_layers': data['best_layers']}
         acc_data = {'model': data['model'], 'pooling': data['pooling'], 'epochs': data['epochs'], 'out_vec_size': data['out_vec_size'], 'qtd_layers': data['qtd_layers'], 'nhid': data['nhid'], 'best_layers': data['best_layers']}
 
-        for task in columns_tasks_cl:
-            devacc_data[task] = data[task].apply(lambda x: parse_dict_with_eval(x).get('devacc', None))
-            acc_data[task] = data[task].apply(lambda x: parse_dict_with_eval(x).get('acc', None))
+        if type_task_process == 'cl':
+
+            for task in columns_tasks_cl:
+                devacc_data[task] = data[task].apply(lambda x: parse_dict_with_eval(x).get('devacc', None))
+                acc_data[task] = data[task].apply(lambda x: parse_dict_with_eval(x).get('acc', None))
+
+        elif type_task_process == 'si':
+
+            for task in columns_tasks_cl:
+                if task in columns_tasks_cl[:5]:
+                    devacc_data[task] = data[task].apply(lambda x: (parse_dict_with_eval(x).get('pearson', None).get('mean', None)) * 100)
+                    acc_data[task] = data[task].apply(lambda x: (parse_dict_with_eval(x).get('spearman', None).get('mean', None)) * 100)
+                if task in columns_tasks_cl[5:]:
+                    devacc_data[task] = data[task].apply(lambda x: (parse_dict_with_eval_other(x).get('pearson', None)) * 100)
+                    acc_data[task] = data[task].apply(lambda x: (parse_dict_with_eval_other(x).get('spearman', None)) * 100)
+
 
         devacc_table = pd.DataFrame(devacc_data)
         acc_table = pd.DataFrame(acc_data)        
@@ -108,73 +121,25 @@ def tables_classification(experiment_path, cl_paths, columns_tasks_cl, ordem_col
         devacc_table['avg_tasks'] = devacc_table[columns_tasks_cl].mean(axis=1)
         acc_table['avg_tasks'] = acc_table[columns_tasks_cl].mean(axis=1)
 
-        devacc_table.to_csv(os.path.join(path_cl, cl_file_name.split('.csv')[0] + '_processado_devacc.csv'))
-        acc_table.to_csv(os.path.join(path_cl, cl_file_name.split('.csv')[0]) + '_processado_acc.csv')
+        if type_task_process == 'cl':
+            devacc_table.to_csv(os.path.join(path_cl, cl_file_name.split('.csv')[0] + '_processado_devacc.csv'))
+            acc_table.to_csv(os.path.join(path_cl, cl_file_name.split('.csv')[0]) + '_processado_acc.csv')
 
-        devacc_table.to_csv(os.path.join(tables_processed, cl_file_name.split('.csv')[0] + '_processado_devacc.csv'))
-        acc_table.to_csv(os.path.join(tables_processed, cl_file_name.split('.csv')[0]) + '_processado_acc.csv')
+        elif type_task_process == 'si':
+            devacc_table.to_csv(os.path.join(path_cl, cl_file_name.split('.csv')[0] + '_processado_pearson.csv'))
+            acc_table.to_csv(os.path.join(path_cl, cl_file_name.split('.csv')[0]) + '_processado_spearman.csv')
 
-def tables_similarity(si_paths, columns_tasks_si, ordem_colunas_si):
-   for slp in si_paths:
-        path_si = MAIN_PATH + '/' + slp
-        path_si_spearman = path_si + "/" + "si_spearman"
-        path_si_pearson = path_si + "/" + "si_pearson"        
-        
-        os.makedirs(path_si_spearman, exist_ok=True)
-        os.makedirs(path_si_pearson, exist_ok=True)
-
-        if [f for f in os.listdir(path_si) if f.endswith('_intermediate.csv')]:
-            os.remove(MAIN_PATH + '/' + slp + '/' + [f for f in os.listdir(path_si) if f.endswith('_intermediate.csv')][0])
-
-        si_file_name = [f for f in os.listdir(path_si) if f.endswith('.csv')][0]
-
-        caminho_arquivo_si = os.path.join(path_si, si_file_name)
-        data = pd.read_csv(caminho_arquivo_si, encoding="utf-8", on_bad_lines="skip")
-
-        pearson_data = {'model': data['model'], 'pooling': data['pooling'], 'epochs': data['epochs'], 'out_vec_size': data['out_vec_size'], 'qtd_layers': data['qtd_layers'], 'nhid': data['nhid'], 'best_layers': data['best_layers']}
-        spearman_data = {'model': data['model'], 'pooling': data['pooling'], 'epochs': data['epochs'], 'out_vec_size': data['out_vec_size'], 'qtd_layers': data['qtd_layers'], 'nhid': data['nhid'], 'best_layers': data['best_layers']}
-
-        for task in columns_tasks_si:
-            if task in columns_tasks_si[:5]:
-                pearson_data[task] = data[task].apply(lambda x: (parse_dict_with_eval(x).get('pearson', None).get('mean', None)))
-                spearman_data[task] = data[task].apply(lambda x: (parse_dict_with_eval(x).get('spearman', None).get('mean', None)))
-            if task in columns_tasks_si[5:]:
-                pearson_data[task] = data[task].apply(lambda x: (parse_dict_with_eval_other(x).get('pearson', None)))
-                spearman_data[task] = data[task].apply(lambda x: (parse_dict_with_eval_other(x).get('spearman', None)))
-
-        pearson_table = pd.DataFrame(pearson_data)
-        spearman_table = pd.DataFrame(spearman_data)        
-
-        pearson_table[['agg', 'layer']] = pearson_table['pooling'].str.split('_', expand=True)
-        spearman_table[['agg', 'layer']] = spearman_table['pooling'].str.split('_', expand=True)
-
-        pearson_table['params'] = "-".join(si_file_name.split('_')[5:11])
-        spearman_table['params'] = "-".join(si_file_name.split('_')[5:11])
-
-        pearson_table['type_pooling'] = pearson_table['agg'].apply(get_type_pooling)
-        spearman_table['type_pooling'] = spearman_table['agg'].apply(get_type_pooling)
-
-        pearson_table = pearson_table[ordem_colunas_si]
-        spearman_table = spearman_table[ordem_colunas_si]  
-
-        pearson_table['avg_tasks'] = pearson_table[columns_tasks_si].mean(axis=1)
-        spearman_table['avg_tasks'] = spearman_table[columns_tasks_si].mean(axis=1)
-
-        pearson_table.to_csv(os.path.join(path_si_pearson, si_file_name.split('.csv')[0] + '_processado_pearson.csv'))
-        spearman_table.to_csv(os.path.join(path_si_spearman, si_file_name.split('.csv')[0]) + '_processado_spearman.csv')
-
-        os.makedirs(MAIN_PATH + '/processados/' + slp, exist_ok=True)
-        shutil.copy(caminho_arquivo_si, MAIN_PATH + '/processados/' + slp)
-        move_with_replace(MAIN_PATH + '/' + slp, FINAL_RESULTS_PATH_SI + '/' + slp)
+        #devacc_table.to_csv(os.path.join(tables_processed, cl_file_name.split('.csv')[0] + '_processado_devacc.csv'))
+        #acc_table.to_csv(os.path.join(tables_processed, cl_file_name.split('.csv')[0]) + '_processado_acc.csv')
 
 def main(experiment_path):
     if args.task_type == "classification":
         cl_paths = [p for p in os.listdir(experiment_path) if p.startswith('cl_')]
-        tables_classification(experiment_path, cl_paths, columns_tasks_cl, ordem_colunas_cl)
+        tables_process(experiment_path, cl_paths, columns_tasks_cl, ordem_colunas_cl, 'cl')
 
     elif args.task_type == "similarity":
         si_paths = [p for p in os.listdir(experiment_path) if p.startswith('si_')]
-        tables_similarity(experiment_path, si_paths, columns_tasks_si, ordem_colunas_si)
+        tables_process(experiment_path, si_paths, columns_tasks_si, ordem_colunas_si, 'si')
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Evaluate Experiments")

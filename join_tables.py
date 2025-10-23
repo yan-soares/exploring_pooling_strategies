@@ -3,62 +3,29 @@ import math
 import os
 import shutil
 
-main_path_base = "../pooling_paper_results/google_drive_results/cl_more_epochs"
-main_path_large = "../pooling_paper_results/google_drive_results/large"
+main_path_cl = "tables_processed/cl_base"
+main_path_si = "tables_processed/si_base"
 
-cl_main_path = "../pooling_paper_results/tables_final_results/CL_more_epochs"
-destino_cl_acc = "../pooling_paper_results/FILES/cl_all_acc_files"
-destino_cl_devacc = "../pooling_paper_results/FILES/cl_all_devacc_files"
+files_cl_acc = [main_path_cl + '/acc/' + p for p in os.listdir(main_path_cl + '/acc/')]
+files_cl_devacc = [main_path_cl + '/dev/' + p for p in os.listdir(main_path_cl + '/dev/')]
 
-os.makedirs(destino_cl_acc, exist_ok=True)
-os.makedirs(destino_cl_devacc, exist_ok=True)
+files_si_pearson = [main_path_si + '/pearson/' + p for p in os.listdir(main_path_si + '/pearson/')]
+files_si_spearman = [main_path_si + '/spearman/' + p for p in os.listdir(main_path_si + '/spearman/')]
 
-# Percorrer todas as subpastas
-for root, dirs, files in os.walk(cl_main_path):
-    # Verificar se está na pasta "acc"
-    if os.path.basename(root) == "cl_acc":
-        for file in files:
-            caminho_origem = os.path.join(root, file)
-            shutil.copy(caminho_origem, destino_cl_acc)
-            #print(f"Copiado: {caminho_origem} para {destino_cl_acc}")
+files_list = [files_cl_acc, files_cl_devacc, files_si_pearson, files_si_spearman]
 
-    # Verificar se está na pasta "dev"
-    elif os.path.basename(root) == "cl_devacc":
-        for file in files:
-            caminho_origem = os.path.join(root, file)
-            shutil.copy(caminho_origem, destino_cl_devacc)
-            #print(f"Copiado: {caminho_origem} para {destino_cl_devacc}")
+for fl in files_list:
+    path_saved = "/".join(fl[0].split('/')[:2])
+    filename_saved = "_".join(fl[0].split('/')[1:3])
 
-#print("Arquivos copiados com sucesso!")
+    dataframes = [
+        df.drop(columns=["Unnamed: 0"], errors="ignore")
+        for df in (pd.read_csv(file) for file in fl)
+    ]
+    combined_df = pd.concat(dataframes, ignore_index=True)
+    combined_df.to_csv(path_saved + "/" + filename_saved + ".csv", index=True)
 
-
-#####FILES BASE
-files_base_acc = [destino_cl_acc + "/" + p for p in os.listdir(destino_cl_acc)]
-files_base_devacc = [destino_cl_devacc + "/" + p for p in os.listdir(destino_cl_devacc)]
-
-######FILES LARGE
-files_large_acc = []
-files_large_devacc = []
-
-#JOINS TABLES BASE
-if len(files_base_acc) > 0 and len(files_base_devacc) > 0:
-
-    #ACC
-    dataframes_base_acc = [pd.read_csv(file) for file in files_base_acc]
-    combined_df_base_acc = pd.concat(dataframes_base_acc, ignore_index=True)
-    combined_df_base_acc.to_csv(main_path_base + "/resultados_cl_base_acc.csv", index=False)
-
-    combined_df_base_acc = combined_df_base_acc.map(
+    combined_df = combined_df.map(
         lambda x: f"{x:.2f}".replace(".", ",") if isinstance(x, (float, int)) else x
     )
-    combined_df_base_acc.to_csv(main_path_base + "/resultados_cl_base_acc_google_drive.csv", index=False, sep=";")
-
-    #DEVACC
-    dataframes_base_devacc = [pd.read_csv(file) for file in files_base_devacc]
-    combined_df_base_devacc = pd.concat(dataframes_base_devacc, ignore_index=True)
-    combined_df_base_devacc.to_csv(main_path_base + "/resultados_cl_base_devacc.csv", index=False)
-
-    combined_df_base_devacc = combined_df_base_devacc.map(
-        lambda x: f"{x:.2f}".replace(".", ",") if isinstance(x, (float, int)) else x
-    )
-    combined_df_base_devacc.to_csv(main_path_base + "/resultados_cl_base_devacc_google_drive.csv", index=False, sep=";")
+    combined_df.to_csv(path_saved + "/" + filename_saved + "_google_drive.csv", index=True, sep=";")

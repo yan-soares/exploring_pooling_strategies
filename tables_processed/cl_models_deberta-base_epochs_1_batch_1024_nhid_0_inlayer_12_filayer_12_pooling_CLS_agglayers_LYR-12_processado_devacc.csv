@@ -1,2 +1,0 @@
-,model,pooling,type_pooling,agg,layer,epochs,out_vec_size,qtd_layers,nhid,params,best_layers,MR,CR,SUBJ,MPQA,SST2,TREC,MRPC,avg_tasks
-0,deberta-base,CLS_LYR-12,simple,CLS,LYR-12,1,"torch.Size([61, 768])",12,0,batch-1024-nhid-0-inlayer-12,NORMAL,70.28,63.76,83.0,71.69,77.75,36.94,67.76,67.31142857142858
