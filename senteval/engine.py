@@ -128,6 +128,6 @@ class SE(object):
         elapsed_time_tasks = (end_time_tasks - start_time_tasks) / 60
         # --- Fim da medição ---
 
-        print(name + " OK! - " + str(elapsed_time_tasks))
+        print(f"{name} OK! - {elapsed_time_tasks:.2f} minutes")
 
         return self.results
