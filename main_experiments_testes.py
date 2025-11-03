@@ -11,6 +11,7 @@ from nltk.corpus import stopwords
 import json
 import time
 import subprocess
+import numpy as np
 
 import warnings
 from sklearn.exceptions import ConvergenceWarning
@@ -413,7 +414,8 @@ def run_senteval(model_name, tasks, args, type_task):
     #GET ALL EMBEDDINGS
     print("LISTA DE POOLINGS: ", list_poolings)
     print("LISTA DE LAYERS: ", list_layers)
-   
+
+    tempos = []   
     for pooling in pooling_strategies:
         encoder.pooling_strategy = pooling
         print(f"Running: Model={encoder.name_model}, Pooling={encoder.pooling_strategy}")
@@ -447,13 +449,18 @@ def run_senteval(model_name, tasks, args, type_task):
         elapsed_time = (end_time - start_time) / 60
         # --- Fim da medição ---
 
+        tempos.append(elapsed_time)
+        media_tempo = np.mean(tempos)
+        tempo_faltante = (media_tempo * (len(pooling_strategies) - len(tempos))) / 60
+
         results_general[pooling]['out_vec_size'] = encoder.size_embedding
         results_general[pooling]['qtd_layers'] = encoder.qtd_layers
         results_general[pooling]['best_layers'] = encoder.print_best_layers
         print(f"Output vector size: {encoder.size_embedding}")
         print(f"BEST LAYERS: {encoder.print_best_layers}")
         print(f"--> Time for this run: {elapsed_time:.2f} minutes") # NOVO: Imprime o tempo no console
-        print("PROGRESS: " + str(pooling_strategies.index(pooling)+1) + '/' + str(len(pooling_strategies)))
+        print("Progress: " + str(len(tempos)) + '/' + str(len(pooling_strategies)))
+        print(f"--> Tempo Faltante Estimado: {tempo_faltante:.2f} horas")
                               
     return results_general
 
