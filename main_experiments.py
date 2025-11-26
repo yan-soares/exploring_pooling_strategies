@@ -11,6 +11,7 @@ from nltk.corpus import stopwords
 import json
 import time
 import subprocess
+import numpy as np
 
 import warnings
 from sklearn.exceptions import ConvergenceWarning
@@ -116,11 +117,11 @@ class SentenceEncoder:
                 print(f"AVISO: Flash Attention 2 não suportado para {model_name}. Carregando modelo padrão. Erro: {e}")
                 self.model = AutoModel.from_pretrained(self.name_model, output_hidden_states=True).to(self.device)
 
-        try:
-            self.model = torch.compile(self.model)
-            print("Modelo compilado com torch.compile() para maior performance.")
-        except Exception:
-            print("torch.compile() não disponível. Rodando sem compilação.")
+        #try:
+        #    self.model = torch.compile(self.model)
+        #    print("Modelo compilado com torch.compile() para maior performance.")
+        #except Exception:
+        #    print("torch.compile() não disponível. Rodando sem compilação.")
 
         self._prepare_special_token_ids()
 
@@ -158,13 +159,14 @@ class SentenceEncoder:
                 output = self.model(**batch_tokens)
                 embeddings = self._apply_pooling(output, batch_tokens['attention_mask'], batch_tokens['input_ids'])
 
-            del batch_tokens, output
-            torch.cuda.empty_cache()   # Libera memória de GPU ociosa
-
             all_embeddings.append(embeddings)
 
         self.size_embedding = all_embeddings[0].shape 
         final_embeddings = torch.cat(all_embeddings, dim=0).to('cpu').numpy()
+
+        del batch_tokens, output
+        torch.cuda.empty_cache()   # Libera memória de GPU ociosa
+        
         return final_embeddings
 
     def _create_combined_mask(self, input_ids, attention_mask, exclude_stopwords=False, exclude_cls_sep=False):
@@ -414,6 +416,7 @@ def run_senteval(model_name, tasks, args, type_task):
     print("LISTA DE POOLINGS: ", list_poolings)
     print("LISTA DE LAYERS: ", list_layers)
    
+    tempos = []  
     for pooling in pooling_strategies:
         encoder.pooling_strategy = pooling
         print(f"Running: Model={encoder.name_model}, Pooling={encoder.pooling_strategy}")
@@ -440,20 +443,25 @@ def run_senteval(model_name, tasks, args, type_task):
             }
         se = senteval.engine.SE(senteval_params, functions_code.batcher)
 
-        # --- NOVO: Medição de tempo ---
+         # --- NOVO: Medição de tempo ---
         start_time = time.time()
         results_general[pooling] = se.eval(tasks)
         end_time = time.time()
         elapsed_time = (end_time - start_time) / 60
         # --- Fim da medição ---
 
+        tempos.append(elapsed_time)
+        media_tempo = np.mean(tempos)
+        tempo_faltante = (media_tempo * (len(pooling_strategies) - len(tempos))) / 60
+
         results_general[pooling]['out_vec_size'] = encoder.size_embedding
         results_general[pooling]['qtd_layers'] = encoder.qtd_layers
         results_general[pooling]['best_layers'] = encoder.print_best_layers
         print(f"Output vector size: {encoder.size_embedding}")
         print(f"BEST LAYERS: {encoder.print_best_layers}")
-        print(f"--> Time for this run: {elapsed_time:.2f} minutes") # NOVO: Imprime o tempo no console
-        print("PROGRESS: " + str(pooling_strategies.index(pooling)+1) + '/' + str(len(pooling_strategies)))
+        print(f"--> Time for this run: {elapsed_time:.2f} minutes")
+        print("Progress: " + str(len(tempos)) + '/' + str(len(pooling_strategies)))
+        print(f"--> Tempo Faltante Estimado: {tempo_faltante:.2f} horas")
                               
     return results_general
 

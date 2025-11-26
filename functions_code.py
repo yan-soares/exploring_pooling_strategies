@@ -117,9 +117,25 @@ def get_list_layers(final_layer, initial_layer, agg_layers_args):
     
     if agg_layers_args[0] == 'SUMAGGLAYERS':
         return list_lyrs_agg_sum
+    if agg_layers_args[0] == 'SUMAGGLAYERS1':
+        return list_lyrs_agg_sum[:15]
+    if agg_layers_args[0] == 'SUMAGGLAYERS2':
+        return list_lyrs_agg_sum[15:30]
+    if agg_layers_args[0] == 'SUMAGGLAYERS3':
+        return list_lyrs_agg_sum[30:45]
+    if agg_layers_args[0] == 'SUMAGGLAYERS4':
+        return list_lyrs_agg_sum[45:]
     
     if agg_layers_args[0] == 'AVGAGGLAYERS':
         return list_lyrs_agg_avg
+    if agg_layers_args[0] == 'AVGAGGLAYERS1':
+        return list_lyrs_agg_avg[:15]
+    if agg_layers_args[0] == 'AVGAGGLAYERS2':
+        return list_lyrs_agg_avg[15:30]
+    if agg_layers_args[0] == 'AVGAGGLAYERS3':
+        return list_lyrs_agg_avg[30:45]
+    if agg_layers_args[0] == 'AVGAGGLAYERS4':
+        return list_lyrs_agg_avg[45:]
     
     if agg_layers_args[0] == 'LYR':
         for i in range(initial_layer, final_layer):
