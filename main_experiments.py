@@ -453,6 +453,7 @@ def run_senteval(model_name, tasks, args, type_task):
         tempos.append(elapsed_time)
         media_tempo = np.mean(tempos)
         tempo_faltante = (media_tempo * (len(pooling_strategies) - len(tempos))) / 60
+        dias_faltante = tempo_faltante / 24
 
         results_general[pooling]['out_vec_size'] = encoder.size_embedding
         results_general[pooling]['qtd_layers'] = encoder.qtd_layers
@@ -462,6 +463,7 @@ def run_senteval(model_name, tasks, args, type_task):
         print(f"--> Time for this run: {elapsed_time:.2f} minutes")
         print("Progress: " + str(len(tempos)) + '/' + str(len(pooling_strategies)))
         print(f"--> Tempo Faltante Estimado: {tempo_faltante:.2f} horas")
+        print(f"--> Dias Faltante Estimado: {dias_faltante:.2f} dias")
                               
     return results_general
 
