@@ -148,5 +148,6 @@ if __name__ == "__main__":
     
     args = parser.parse_args()
 
-    experiment_path = '../results_pooling_paper/' + str(args.save_dir)
+    #experiment_path = '../results_pooling_paper/' + str(args.save_dir)
+    experiment_path = str(args.save_dir)
     main(experiment_path)
