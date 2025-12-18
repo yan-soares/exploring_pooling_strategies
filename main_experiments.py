@@ -524,15 +524,17 @@ def main(args):
     initial_layer_args_print = args.initial_layer if args.initial_layer is not None else "default"
     final_layer_args_print = args.final_layer if args.final_layer is not None else "default"
 
-    filename_task = ('_models_' + '&'.join([st for st in args.models]) + 
-                     '_epochs_' + str(args.epochs) + 
-                     '_batch_' + str(args.batch) +
-                     '_nhid_' + str(args.nhid) + 
-                     '_initiallayer_' + str(initial_layer_args_print) + 
-                     '_finallayer_' + str(final_layer_args_print) +
-                     '_pooling_' + '&'.join([st for st in args.poolings]) + 
-                     '_agglayers_' + '&'.join([st for st in args.agg_layers])
-                    )
+    #filename_task = ('_models_' + '&'.join([st for st in args.models]) + 
+    #                 '_epochs_' + str(args.epochs) + 
+    #                 '_batch_' + str(args.batch) +
+    #                 '_nhid_' + str(args.nhid) + 
+    #                 '_initiallayer_' + str(initial_layer_args_print) + 
+    #                 '_finallayer_' + str(final_layer_args_print) +
+    #                 '_pooling_' + '&'.join([st for st in args.poolings]) + 
+    #                 '_agglayers_' + '&'.join([st for st in args.agg_layers])
+    #                )
+
+    filename_task = str(args.save_dir)
     
     if args.task_type == "classification":      
         filename_cl = "cl" + filename_task
