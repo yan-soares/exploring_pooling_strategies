@@ -503,8 +503,8 @@ def tasks_run(args, main_path, filename_task, tasks_list, type_task):
                 **{task: dict_results[i] for i, task in enumerate(tasks_list)}
             })
         
-        final_df1 = pd.DataFrame(results_data)
-        final_df1.to_csv(path_created + '/' + filename_task + '_intermediate.csv', index=False)
+            final_df1 = pd.DataFrame(results_data)
+            final_df1.to_csv(path_created + '/' + filename_task + '_intermediate.csv', index=False)
                     
     final_df = pd.DataFrame(results_data)
     final_df.to_csv(path_created + '/' + filename_task + '.csv', index=False)
