@@ -100,11 +100,12 @@ def get_pooling_techniques(poolings_args, name_agg):
 
 def get_list_layers(final_layer, initial_layer, agg_layers_args):
 
-    if final_layer == 12:
-        list_lyrs_agg_sum, list_lyrs_agg_avg = get_agg_base()
-    if final_layer == 24:
-        list_lyrs_agg_sum, list_lyrs_agg_avg = get_agg_large()
-        
+    #if final_layer == 12:
+    #    list_lyrs_agg_sum, list_lyrs_agg_avg = get_agg_base()
+    #if final_layer == 24:
+    #    list_lyrs_agg_sum, list_lyrs_agg_avg = get_agg_large()
+
+    list_lyrs_agg_sum, list_lyrs_agg_avg = get_agg_base()
     list_lyrs_agg = list_lyrs_agg_sum + list_lyrs_agg_avg
 
     lyrs = []
